@@ -24,6 +24,27 @@ to an exact upstream commit, the build is a workflow anyone can read, and the
 version the binary reports is checked against the version we think we pinned —
 twice, once at build time and once against the pushed image.
 
+### Checking a server before a bot is on it
+
+A server refuses to say anything without a valid token -- an invalid one gets
+401 for every method, including ones that do not exist -- so a server cannot be
+interrogated anonymously. `deploy/probe.sh` uses a bot that serves nothing for
+exactly this: it can be pointed at an untested server without unplugging
+anything that works.
+
+```sh
+./probe.sh                                   # the default set, against the stack's server
+./probe.sh http://other:8081 sendRichMessage # one method, another server
+```
+
+Store that bot's token as `PROBE_BOT_TOKEN` in the stack's `.env`. Only ask for
+methods that cannot act on an empty body: a probe is a real call, so `getMe`
+would simply run, `deleteWebhook` would drop a webhook, and `logOut` would
+detach the bot for ten minutes.
+
+Without this, verifying a new server means moving a real bot onto it -- and
+moving a bot means `logOut` on the server it leaves, which is a one-way step.
+
 ### Finding out what is running
 
 The server does not log its version unless verbosity is raised high enough to

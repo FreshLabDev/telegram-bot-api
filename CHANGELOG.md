@@ -4,6 +4,10 @@
 
 ### Added
 
+- `deploy/probe.sh`, which asks a server which methods it implements using a bot
+  that serves nothing. A server answers nothing without a valid token, so until
+  now the only way to test one was to move a real bot onto it -- and moving a
+  bot means logging it out of the server it leaves, which is a one-way step.
 - A weekly drift check. The pin does not move on its own -- that is the point
   of a pin, and it is also how the previous server sat on Bot API 7.11 for two
   years. The job compares the pinned version against upstream's sources and
