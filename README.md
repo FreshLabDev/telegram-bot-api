@@ -87,8 +87,12 @@ logged in on two has no guarantee of receiving all updates. So:
 
 1. Stop the bot.
 2. `logOut` on the server it is leaving.
-3. Point it at this one and mount its media directory.
-4. Start it.
+3. Create its media directory here before it starts:
+   `mkdir -p <files dir>/<token> && chown 101:101 <files dir>/<token>`. Docker
+   would otherwise create the missing bind source as `root`, and then neither
+   the server nor the bot could write in it.
+4. Point it at this one and mount that directory.
+5. Start it.
 
 Leaving for `https://api.telegram.org` works the same way, with a ten-minute
 cooldown before the cloud server accepts the token again.
