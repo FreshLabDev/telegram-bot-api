@@ -25,6 +25,11 @@ services:
       TELEGRAM_FILES_DIR: /var/lib/telegram-bot-api-files
       TELEGRAM_TEMP_DIR: /tmp/telegram-bot-api
       TELEGRAM_STAT_PORT: "8082"
+      # The server's own default is 0 -- FATAL only -- so it logs nothing at
+      # all, not even which Bot API version it started as. That is precisely
+      # how a server could sit two years behind without anyone seeing it. 1 is
+      # WARNING: the startup line and real problems, nothing per-request.
+      TELEGRAM_VERBOSITY: "1"
     volumes:
       - ./data:/var/lib/telegram-bot-api
       - ./files:/var/lib/telegram-bot-api-files

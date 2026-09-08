@@ -58,7 +58,8 @@ docker run --rm \
 | `TELEGRAM_TEMP_DIR` | `/tmp/telegram-bot-api` | Temporary files |
 | `TELEGRAM_HTTP_PORT` | `8081` | API port |
 | `TELEGRAM_STAT_PORT` | unset | Statistics port. Reports uptime, bot count and memory — **not** the Bot API version |
-| `TELEGRAM_VERBOSITY`, `TELEGRAM_MAX_CONNECTIONS`, `TELEGRAM_MAX_WEBHOOK_CONNECTIONS`, `TELEGRAM_PROXY` | unset | Passed through |
+| `TELEGRAM_VERBOSITY` | unset (server default `0`) | Log level. The server's own default is FATAL-only, so it prints **nothing** — not even which Bot API version it started as. Set it to `1` (WARNING) unless you enjoy silence |
+| `TELEGRAM_MAX_CONNECTIONS`, `TELEGRAM_MAX_WEBHOOK_CONNECTIONS`, `TELEGRAM_PROXY` | unset | Passed through |
 
 The server binds as root and then drops to uid 101, so files it writes are
 owned by `101:101`. A bot container that reads them should run as that uid —

@@ -17,3 +17,7 @@ First FreshLab build.
   without any `td.binlog` — its own or another bot's — coming along with it.
 - Published to `ghcr.io/freshlabdev/telegram-bot-api`, no `latest` tag:
   deployments pin a digest.
+- The deployment sets `TELEGRAM_VERBOSITY=1`. The server's own default is 0,
+  which is FATAL-only: it logs nothing at all, including the line that names
+  the Bot API version it started as. A server that cannot say what it is, is
+  how one ends up two years behind unnoticed.
