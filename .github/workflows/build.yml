@@ -76,8 +76,10 @@ jobs:
       - name: Verify the built server reports the pinned version
         if: github.event_name != 'pull_request'
         run: |
+          # --version goes to stderr: the server logs it through its own
+          # logger, which never writes to stdout.
           got=$(docker run --rm --entrypoint telegram-bot-api \
-            ${{ env.IMAGE }}@${{ steps.push.outputs.digest }} --version)
+            ${{ env.IMAGE }}@${{ steps.push.outputs.digest }} --version 2>&1)
           echo "$got"
           case "$got" in
             *"${{ steps.pin.outputs.version }}"*) ;;
