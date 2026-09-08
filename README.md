@@ -24,6 +24,20 @@ to an exact upstream commit, the build is a workflow anyone can read, and the
 version the binary reports is checked against the version we think we pinned —
 twice, once at build time and once against the pushed image.
 
+### Finding out what is running
+
+The server does not log its version unless verbosity is raised high enough to
+also log every second, so the version lives in the image instead:
+
+```sh
+docker inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' <image>
+docker exec <container> telegram-bot-api --version   # writes to stderr
+```
+
+A bot can also ask the running server directly, which is the answer that
+actually matters: whether it implements the methods that bot needs. See
+`Client.Preflight` in [FreshLabDev/tg](https://github.com/FreshLabDev/tg).
+
 ## What is pinned
 
 ```
@@ -58,7 +72,7 @@ docker run --rm \
 | `TELEGRAM_TEMP_DIR` | `/tmp/telegram-bot-api` | Temporary files |
 | `TELEGRAM_HTTP_PORT` | `8081` | API port |
 | `TELEGRAM_STAT_PORT` | unset | Statistics port. Reports uptime, bot count and memory — **not** the Bot API version |
-| `TELEGRAM_VERBOSITY` | unset (server default `0`) | Log level. The server's own default is FATAL-only, so it prints **nothing** — not even which Bot API version it started as. Set it to `1` (WARNING) unless you enjoy silence |
+| `TELEGRAM_VERBOSITY` | unset (server default `0`) | Log level. The default is FATAL-only: the server stays silent even when it fails. `1` adds errors and is what the deployment uses. `2` also prints the startup banner — and a CPU-usage line every second |
 | `TELEGRAM_MAX_CONNECTIONS`, `TELEGRAM_MAX_WEBHOOK_CONNECTIONS`, `TELEGRAM_PROXY` | unset | Passed through |
 
 The server binds as root and then drops to uid 101, so files it writes are

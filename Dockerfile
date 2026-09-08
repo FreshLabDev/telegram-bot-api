@@ -5,11 +5,11 @@
 # with the tokens of every bot on the host and sees all of their messages, so
 # what goes into it is decided here and nowhere else. The td submodule is
 # pinned transitively by that commit.
+# Declared before the first stage so both stages can inherit them: an ARG
+# defined inside a stage is invisible to the next one, which is how a label
+# ends up empty.
 ARG ALPINE_VERSION=3.24
-
-FROM alpine:${ALPINE_VERSION} AS build
-
-# Upstream commit. Bump deliberately, together with EXPECTED_BOT_API below.
+# Upstream commit. Bump deliberately, together with EXPECTED_BOT_API.
 ARG BOT_API_COMMIT=e3e9dd8e5b3d7ab8537cd5a10dc31d5ffa8f82d1
 # Bot API version that commit declares. The build fails if the two disagree,
 # so an unnoticed bump cannot ship under the old version number.
@@ -17,6 +17,11 @@ ARG EXPECTED_BOT_API=10.3
 # TDLib compilation is memory-hungry: roughly 1.5-2 GB per job. Four fits a
 # 16 GB runner; lower it on a smaller machine.
 ARG BUILD_JOBS=4
+
+FROM alpine:${ALPINE_VERSION} AS build
+ARG BOT_API_COMMIT
+ARG EXPECTED_BOT_API
+ARG BUILD_JOBS
 
 RUN apk add --no-cache alpine-sdk linux-headers git cmake gperf zlib-dev openssl-dev
 
@@ -38,9 +43,12 @@ RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/
  && strip /out/bin/telegram-bot-api
 
 FROM alpine:${ALPINE_VERSION}
-
 ARG BOT_API_COMMIT
 ARG EXPECTED_BOT_API
+
+# The version has to be readable without running anything: the server itself
+# is silent by default, so `docker inspect` is how an operator finds out what
+# is actually running.
 LABEL org.opencontainers.image.title="telegram-bot-api" \
       org.opencontainers.image.description="Telegram Bot API server built from pinned tdlib sources" \
       org.opencontainers.image.source="https://github.com/FreshLabDev/telegram-bot-api" \
