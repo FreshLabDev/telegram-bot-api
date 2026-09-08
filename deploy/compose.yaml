@@ -39,7 +39,13 @@ services:
       # the server only ever needs to read what a bot put there.
       - /opt/stacks/shared-media-cache:/shared-media-cache:ro
     # No published ports: the bots reach it over the shared network by name.
-    networks: [telegram_bot_api_net]
+    # The alias is the name the previous server answered to. Now that it is
+    # gone and every bot has moved, "telegram-bot-api" means this server --
+    # which keeps an older config or a forgotten default pointing somewhere
+    # real instead of at a host that no longer resolves.
+    networks:
+      telegram_bot_api_net:
+        aliases: [telegram-bot-api]
     healthcheck:
       test: ["CMD-SHELL", "nc -z 127.0.0.1 8081 || exit 1"]
       interval: 10s
