@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- A weekly drift check. The pin does not move on its own -- that is the point
+  of a pin, and it is also how the previous server sat on Bot API 7.11 for two
+  years. The job compares the pinned version against upstream's sources and
+  against what Telegram has published, and opens an issue when they disagree.
+
 ## Bot API 10.3 - 2026-09-08
 
 First FreshLab build.

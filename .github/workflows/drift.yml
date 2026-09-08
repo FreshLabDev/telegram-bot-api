@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: Apache-2.0
+# The pin does not move on its own. That is its point, and it is also how the
+# previous server sat two years behind without anyone noticing, so something
+# has to say when upstream has moved on.
+name: drift
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compare the pin with upstream
+        id: check
+        run: |
+          set -euo pipefail
+          pinned_commit=$(grep -oE 'ARG BOT_API_COMMIT=[0-9a-f]{40}' Dockerfile | cut -d= -f2)
+          pinned_version=$(grep -oE 'ARG EXPECTED_BOT_API=[0-9]+\.[0-9]+' Dockerfile | cut -d= -f2)
+
+          head_commit=$(curl -fsSL https://api.github.com/repos/tdlib/telegram-bot-api/commits/master \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')
+          head_version=$(curl -fsSL https://raw.githubusercontent.com/tdlib/telegram-bot-api/master/telegram-bot-api/telegram-bot-api.cpp \
+            | grep -oE 'version_ = "[0-9]+\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          # What Telegram itself has published, which can lead the server sources.
+          published=$(curl -fsSL https://core.telegram.org/bots/api \
+            | grep -oE 'Bot API [0-9]+\.[0-9]+' | head -1 | awk '{print $3}')
+
+          {
+            echo "| | pinned here | upstream master | published by Telegram |"
+            echo "|---|---|---|---|"
+            echo "| Bot API | $pinned_version | ${head_version:-?} | ${published:-?} |"
+            echo "| commit | \`${pinned_commit:0:12}\` | \`${head_commit:0:12}\` | — |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          behind=no
+          [ -n "$head_version" ] && [ "$pinned_version" != "$head_version" ] && behind=yes
+          [ -n "$published" ] && [ "$pinned_version" != "$published" ] && behind=yes
+          {
+            echo "behind=$behind"
+            echo "pinned_version=$pinned_version"
+            echo "head_version=${head_version:-unknown}"
+            echo "published=${published:-unknown}"
+            echo "head_commit=$head_commit"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open an issue when the pin has fallen behind
+        if: steps.check.outputs.behind == 'yes'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { pinned_version, head_version, published, head_commit } = ${{ toJSON(steps.check.outputs) }};
+            const title = `Bot API ${published} is out; this server is pinned to ${pinned_version}`;
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'drift',
+            });
+            if (existing.data.some(i => i.title === title)) return;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title,
+              labels: ['drift'],
+              body: [
+                `Pinned: Bot API **${pinned_version}**`,
+                `Upstream master declares: **${head_version}** (\`${head_commit}\`)`,
+                `Telegram has published: **${published}**`,
+                '',
+                'Every bot on the host speaks to this server, so a bot written',
+                'against a newer version gets `404 method not found` for every',
+                'call it has learned since — silently, unless its preflight',
+                'names the method.',
+                '',
+                'To move: bump `BOT_API_COMMIT` and `EXPECTED_BOT_API` in the',
+                'Dockerfile together, let the build verify they agree, and deploy',
+                'the new digest.',
+              ].join('\n'),
+            });
