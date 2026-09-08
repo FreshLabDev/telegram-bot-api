@@ -33,6 +33,11 @@ services:
     volumes:
       - ./data:/var/lib/telegram-bot-api
       - ./files:/var/lib/telegram-bot-api-files
+      # Local mode lets a bot hand over a file by path instead of uploading it:
+      # vido writes a finished video here and sends file:///shared-media-cache/…,
+      # so the server reads the bytes off disk rather than over HTTP. Read-only:
+      # the server only ever needs to read what a bot put there.
+      - /opt/stacks/shared-media-cache:/shared-media-cache:ro
     # No published ports: the bots reach it over the shared network by name.
     networks: [telegram_bot_api_net]
     healthcheck:
