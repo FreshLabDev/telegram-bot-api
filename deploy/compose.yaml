@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: Apache-2.0
+# The FreshLab-built Bot API server on WS04, running beside the old one.
+#
+# A bot token is logged in on exactly one server: upstream warns that a bot
+# logged in on two has no guarantee of receiving all updates. So this stack
+# serves only the bots that have been moved to it, one at a time, and the old
+# server keeps the rest until they are.
+name: telegram-bot-api-next
+
+services:
+  server:
+    image: ${BOT_API_IMAGE:?BOT_API_IMAGE must be an immutable GHCR digest reference}
+    container_name: telegram-bot-api-next
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      TELEGRAM_LOCAL: "1"
+      TELEGRAM_WORK_DIR: /var/lib/telegram-bot-api
+      # Bot API 10.3 can keep media out of the working directory. That matters
+      # here: a bot needs its media mounted, and the working directory holds
+      # td.binlog for every bot on this server. Splitting them means a bot's
+      # mount carries no session state at all -- not even its own.
+      TELEGRAM_FILES_DIR: /var/lib/telegram-bot-api-files
+      TELEGRAM_TEMP_DIR: /tmp/telegram-bot-api
+      TELEGRAM_STAT_PORT: "8082"
+    volumes:
+      - ./data:/var/lib/telegram-bot-api
+      - ./files:/var/lib/telegram-bot-api-files
+    # No published ports: the bots reach it over the shared network by name.
+    networks: [telegram_bot_api_net]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8081 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  telegram_bot_api_net:
+    external: true
+    name: telegram_bot_api_net

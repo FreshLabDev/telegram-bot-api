@@ -1,0 +1,4 @@
+.DS_Store
+deploy/.env
+deploy/data/
+deploy/files/

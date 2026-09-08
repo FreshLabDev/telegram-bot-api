@@ -1,0 +1,11 @@
+telegram-bot-api (FreshLab build)
+Copyright 2026 FreshLab
+
+The files in this repository -- the Dockerfile, the entrypoint, the workflow
+and the deployment manifests -- are licensed under the Apache License 2.0.
+
+The server they build is Telegram Bot API server by Telegram Messenger,
+https://github.com/tdlib/telegram-bot-api, licensed under the Boost Software
+License 1.0. It is fetched at build time from a pinned commit and is not
+redistributed in this repository. The resulting image therefore contains
+BSL-1.0 software.
