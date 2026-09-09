@@ -4,6 +4,16 @@
 
 ### Added
 
+- A version line of this repository's own, `v<bot api>-<build>`, and the
+  release workflow that publishes it. The image carried `:10.3` and
+  `:commit-<sha>`, and neither is something to roll back to: the first moves on
+  every rebuild, and the second names the upstream commit, which does not change
+  when the base image or the entrypoint here does. Two builds that run
+  differently could carry both. A release re-tags the digest the build workflow
+  already pushed and verified -- it never rebuilds, because a rebuild is not
+  guaranteed to produce the same bytes and the point is to name bytes that were
+  tested. See [`docs/versioning.md`](docs/versioning.md).
+
 - `deploy/probe.sh`, which asks a server which methods it implements using a bot
   that serves nothing. A server answers nothing without a valid token, so until
   now the only way to test one was to move a real bot onto it -- and moving a
@@ -13,9 +23,9 @@
   years. The job compares the pinned version against upstream's sources and
   against what Telegram has published, and opens an issue when they disagree.
 
-## Bot API 10.3 - 2026-09-08
+## v10.3-1 - 2026-09-08
 
-First Asterfield build.
+First Asterfield build. Bot API 10.3.
 
 - Built from `tdlib/telegram-bot-api@e3e9dd8` (2026-08-25), td submodule
   `bc9c263`, on Alpine 3.24. The version the sources declare is checked

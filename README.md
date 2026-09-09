@@ -45,6 +45,16 @@ detach the bot for ten minutes.
 Without this, verifying a new server means moving a real bot onto it -- and
 moving a bot means `logOut` on the server it leaves, which is a one-way step.
 
+### Versions of this build
+
+Telegram's version is the server's; `v<bot api>-<build>` is this repository's,
+because what is packaged around that server -- base image, entrypoint, labels,
+the pinned upstream commit within one Bot API version -- changes on its own
+schedule. `:10.3` moves on every rebuild and `:commit-<sha>` names the upstream
+commit, so neither is a thing to roll back to. A release names one digest that
+was built and verified, and does not rebuild it. See
+[`docs/versioning.md`](docs/versioning.md).
+
 ### Finding out what is running
 
 The server does not log its version unless verbosity is raised high enough to
