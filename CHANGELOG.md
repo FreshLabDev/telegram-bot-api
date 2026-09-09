@@ -11,6 +11,33 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 ## Unreleased
 
+Use this section for changes that are merged but not released yet.
+
+## v10.3-1 - 2026-09-09
+
+First named build of the Bot API 10.3 server. The image existed; what it lacked
+was a version anybody could roll back to.
+
+First Asterfield build. Bot API 10.3.
+
+- Built from `tdlib/telegram-bot-api@e3e9dd8` (2026-08-25), td submodule
+  `bc9c263`, on Alpine 3.24. The version the sources declare is checked
+  against the pin at build time, and the pushed image is run with `--version`
+  to confirm it agrees.
+- Credentials are read from the environment by the server itself, so they
+  never appear in argv.
+- `TELEGRAM_FILES_DIR` support (Bot API 10.3). Media can now live outside the
+  working directory, which is what lets a bot be given its own media directory
+  without any `td.binlog` — its own or another bot's — coming along with it.
+- Published to `ghcr.io/freshlabdev/telegram-bot-api`, no `latest` tag:
+  deployments pin a digest.
+- The deployment sets `TELEGRAM_VERBOSITY=1`, so the server at least reports
+  its own errors; its default of 0 is FATAL-only and says nothing even when
+  failing. The startup banner naming the Bot API version needs level 2, which
+  also logs CPU usage every second, so the version is exposed as an image
+  label instead — a server that cannot say what it is, is how one ends up two
+  years behind unnoticed.
+
 ### Changed
 
 - One versioning and release document for the whole family. `docs/versioning.md`
@@ -70,25 +97,3 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
   of a pin, and it is also how the previous server sat on Bot API 7.11 for two
   years. The job compares the pinned version against upstream's sources and
   against what Telegram has published, and opens an issue when they disagree.
-
-## v10.3-1 - 2026-09-08
-
-First Asterfield build. Bot API 10.3.
-
-- Built from `tdlib/telegram-bot-api@e3e9dd8` (2026-08-25), td submodule
-  `bc9c263`, on Alpine 3.24. The version the sources declare is checked
-  against the pin at build time, and the pushed image is run with `--version`
-  to confirm it agrees.
-- Credentials are read from the environment by the server itself, so they
-  never appear in argv.
-- `TELEGRAM_FILES_DIR` support (Bot API 10.3). Media can now live outside the
-  working directory, which is what lets a bot be given its own media directory
-  without any `td.binlog` — its own or another bot's — coming along with it.
-- Published to `ghcr.io/freshlabdev/telegram-bot-api`, no `latest` tag:
-  deployments pin a digest.
-- The deployment sets `TELEGRAM_VERBOSITY=1`, so the server at least reports
-  its own errors; its default of 0 is FATAL-only and says nothing even when
-  failing. The startup banner naming the Bot API version needs level 2, which
-  also logs CPU usage every second, so the version is exposed as an image
-  label instead — a server that cannot say what it is, is how one ends up two
-  years behind unnoticed.
