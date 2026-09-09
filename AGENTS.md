@@ -33,3 +33,13 @@ check against the pushed image.
 2. Bump both build arguments, run the build, note the digest.
 3. Deploy to the parallel stack first and probe it with a real bot before any
    other bot is moved onto it.
+
+## Versioning
+
+- This repository's versions are `v<bot api>-<build>`, not `1.2.3`; the first
+  half is Telegram's and is verified, not chosen. See `docs/versioning.md`.
+- Tags go on `main`. There is no pre-release line here: a release re-tags a
+  digest the build workflow already pushed and verified, it never rebuilds.
+- Prove a build with `deploy/probe.sh` and the probe bot before tagging. A
+  token is logged in on one server at a time, so moving a real bot to test a
+  build is a one-way step.

@@ -1,6 +1,29 @@
 # Changelog
 
+All notable telegram-bot-api changes are documented here.
+
+The `## <tag>` section of this file *is* the GitHub Release body: the release
+workflow copies it verbatim and refuses a tag that has no section. Write it
+for whoever has to decide whether to upgrade.
+
+See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
+[`docs/releases.md`](docs/releases.md) for how a release is published.
+
 ## Unreleased
+
+### Changed
+
+- One versioning and release document for the whole family. `docs/versioning.md`
+  and `docs/releases.md` are now byte-identical across every Asterfield
+  repository apart from two clearly marked sections: this repository's own
+  version line, and the surface where a change here breaks something. They spell
+  out what each of the three numbers means, what the `-alpha.N` suffix counts,
+  when alpha becomes beta and when it is legitimate to skip to rc or run a
+  pre-release in production.
+- The document explains why this repository does not use `1.2.3` — the server's
+  version is Telegram's and is verified rather than chosen — and how
+  `v<bot api>-<build>` maps onto the shared rules. The branch rule is the same
+  as everywhere else.
 
 ### Added
 
