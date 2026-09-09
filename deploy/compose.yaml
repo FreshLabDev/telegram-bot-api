@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# The FreshLab-built Bot API server on WS04, running beside the old one.
+# The Asterfield-built Bot API server on WS04, running beside the old one.
 #
 # A bot token is logged in on exactly one server: upstream warns that a bot
 # logged in on two has no guarantee of receiving all updates. So this stack

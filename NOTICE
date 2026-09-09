@@ -1,5 +1,5 @@
-telegram-bot-api (FreshLab build)
-Copyright 2026 FreshLab
+telegram-bot-api (Asterfield build)
+Copyright 2026 Asterfield
 
 The files in this repository -- the Dockerfile, the entrypoint, the workflow
 and the deployment manifests -- are licensed under the Apache License 2.0.
