@@ -112,7 +112,22 @@ BOT_API_IMAGE=ghcr.io/freshlabdev/telegram-bot-api@sha256:<digest>
 Pin the **digest**, not the tag. A tag can be moved; a digest names one build
 that was tested, so a rollback is one line with nothing to rebuild, and
 `docker inspect` on the running container answers which commit it came from. The
-digest of a release is in its GitHub Release notes, or:
+digest of a release is in its GitHub Release notes. To read it off the host that
+will run it, pull the tag once and ask the daemon:
+
+```sh
+docker pull ghcr.io/freshlabdev/telegram-bot-api:<tag>
+docker inspect --format '{{index .RepoDigests 0}}' ghcr.io/freshlabdev/telegram-bot-api:<tag>
+```
+
+That first pull is not a formality. Deploying straight to
+`ghcr.io/freshlabdev/telegram-bot-api@sha256:<digest>` on a host that has never fetched
+the tag has answered `403` on a blob, and a single pull by tag cleared it every
+time; the cause was never pinned down, so treat pull-then-pin as the recipe
+rather than an optimisation. It also means the layers are already local when the
+stack comes up.
+
+Without a shell on the host, the API answers the same question:
 
 ```sh
 gh api /orgs/FreshLabDev/packages/container/telegram-bot-api/versions \
