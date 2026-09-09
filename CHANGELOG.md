@@ -27,6 +27,23 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 ### Added
 
+- The release resolves its image by this repository's commit
+  (`:sha-<commit>`, published by the build workflow) instead of by the floating
+  `:10.3` tag. That tag is rewritten on every qualifying push, so it had no
+  connection to the tagged commit: merging to `main` changes the Dockerfile and
+  starts a build that takes up to two hours, and a tag pushed before it finished
+  would have published the *previous* image under the new version — with the
+  `--version` check unable to notice, because the Bot API version had not
+  changed.
+- The release verifies that re-tagging preserved the digest. The build attaches
+  provenance and an SBOM, so a tag points at an OCI index and
+  `imagetools create` pushes a new one; the bytes that run are the same, but the
+  index digest is not guaranteed to be, and a moved digest silently breaks the
+  rollback this whole version line exists for.
+- The `--version` check is anchored on a word boundary. As a bare substring it
+  accepted `10.30` for `10.3`, and any line merely mentioning the number — and
+  it is the only barrier between a digest in GHCR and a published release.
+
 - `docs/releases.md` gained a **Deploying** section, and `AGENTS.md` points at it.
   Releasing was documented; deploying was not, in any repository in the family —
   the process stopped at "deploy it" and never said how. That gap mattered more

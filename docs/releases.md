@@ -3,8 +3,9 @@
 Every Asterfield repository releases the same way. This document is identical in
 all of them; only the verification section is specific to telegram-bot-api.
 
-See [`versioning.md`](versioning.md) for what the numbers mean and why
-pre-releases are tagged on `dev` and stable versions on `main`.
+See [`versioning.md`](versioning.md) for what the numbers mean. This repository
+has no pre-release line, so every tag here is a release and every tag goes on
+`main`.
 
 ## The changelog is the release notes
 
@@ -28,43 +29,30 @@ Which means the changelog has to be written for somebody else to read:
 - Exactly one `## Unreleased` section, always at the top. Two of them means the
   next release renames the wrong one.
 
-## Publishing a pre-release
+## Publishing a release
 
-A pre-release is tagged on `dev`. Nothing merges anywhere.
+There is no pre-release line here. A release does not build anything: it names a
+digest the build workflow already pushed and verified, so the proving happens
+before the tag, with `deploy/probe.sh` against a server no real bot is on.
 
-1. Finish the work on `dev` and run the verification below.
-2. Rename `## Unreleased` to the version, and open a fresh empty `## Unreleased`
-   above it:
+**Merge to `main` and push it before tagging.** GitHub runs a workflow from the
+file present on the tagged ref, and `release.yml` lives on `dev` until that
+merge. A tag pushed to `main` first would find no workflow there: the tag would
+appear, no release would be created, no image tag would move, and nothing would
+say so.
 
-   ```text
-   ## Unreleased
+Then wait for the build that merge starts. Changing the Dockerfile or the build
+workflow triggers one, and it takes up to two hours; the release resolves the
+image by this repository's commit, so it refuses until that build has finished
+rather than publishing the previous one.
 
-   ## v1.2.3-alpha.4 - 2026-09-09
-   ```
-
-3. Commit that on `dev` and push it.
-4. Tag the pushed commit and push the tag:
-
-   ```sh
-   git tag -a v1.2.3-alpha.4 -m "v1.2.3-alpha.4"
-   git push origin dev
-   git push origin v1.2.3-alpha.4
-   ```
-
-The tag push runs `.github/workflows/release.yml`, which re-runs the checks,
-refuses the tag if it is not on `dev` or has no changelog section, builds and
-publishes the image, and creates the GitHub Release marked as a pre-release.
-
-Then point the test bot at it. A pre-release nobody ran is a pre-release that
-proved nothing.
-
-## Publishing a stable release
 
 A stable version is tagged on `main`, on the merge commit.
 
-1. The version being promoted should already have been through at least one
-   pre-release that actually ran somewhere. If it has not, say why in the
-   changelog.
+1. The build being promoted must already have been exercised with
+   `deploy/probe.sh` against the probe bot. A real bot cannot be used for this:
+   a token is logged in on exactly one server at a time, so moving one to test
+   a build is a step that cannot be taken back.
 2. On `dev`, rename `## Unreleased` to the stable version and push.
 3. Merge into `main` with a merge commit, so the tag has something to sit on:
 
@@ -85,12 +73,12 @@ A stable version is tagged on `main`, on the merge commit.
 
 ## Rolling back
 
-Do not retag and do not delete a published release. Roll back by deploying the
-previous version — the images are pinned by digest, so the previous digest is
-the whole rollback — and then publish a new patch that fixes what went wrong.
+Set `BOT_API_IMAGE` to the previous release's digest and bring the stack up
+again. The digest is in that release's notes, and the image is still in GHCR.
 
-A version that was published is a fact about what existed. Rewriting it makes
-every other record of it wrong.
+Do not retag and do not delete a published release. A version that was published
+is a fact about what existed, and every deployment that pinned its digest is a
+record that would be made wrong by rewriting it.
 
 ## Deploying
 

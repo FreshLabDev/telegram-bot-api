@@ -62,6 +62,7 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:${{ steps.pin.outputs.version }}
             ${{ env.IMAGE }}:commit-${{ steps.pin.outputs.commit }}
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
           provenance: true
           sbom: true
 

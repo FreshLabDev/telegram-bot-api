@@ -126,7 +126,8 @@ ever be true of either.
 - Pre-releases (`-alpha.N`, `-beta.N`, `-rc.N`) are tagged on `dev`.
 - Stable versions are tagged on `main`, on the merge commit from `dev`.
 - Every pre-release is marked as a pre-release on GitHub. The release workflow
-  does this from the shape of the tag.
+  does this from the shape of the tag. (Not applicable here: this repository has
+  no pre-release line — see below.)
 - A published version is never reused, moved, or retagged. If it was wrong,
   publish the next number.
 - Every tag has a matching `## <tag>` section in `CHANGELOG.md`. The release

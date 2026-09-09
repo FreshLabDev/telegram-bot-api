@@ -80,14 +80,23 @@ jobs:
 
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
-      - name: Resolve the digest behind the pinned version tag
+      - name: Resolve the digest built from this exact commit
         id: digest
         run: |
-          digest=$(docker buildx imagetools inspect \
-            "${IMAGE}:${{ steps.pin.outputs.version }}" --format '{{ json .Manifest.Digest }}' \
-            | tr -d '"')
+          # Addressed by this repository's commit, never by ":10.3". That tag
+          # floats -- the build workflow rewrites it on every qualifying push --
+          # so resolving it here would publish whatever happened to be behind it
+          # at release time, with no connection to the tagged commit. Merging to
+          # main changes the Dockerfile and starts a build that takes up to two
+          # hours; a tag pushed before it finished would have released the
+          # previous image, and the --version check could not tell, because the
+          # Bot API version did not change.
+          ref="${IMAGE}:sha-${GITHUB_SHA}"
+          digest=$(docker buildx imagetools inspect "${ref}" \
+            --format '{{ json .Manifest.Digest }}' 2>/dev/null | tr -d '"' || true)
           if [ -z "${digest}" ]; then
-            echo "no image at ${IMAGE}:${{ steps.pin.outputs.version }} -- run the build workflow first"
+            echo "no image built from ${GITHUB_SHA}."
+            echo "The build workflow has not finished for this commit -- wait for it, then re-run this release."
             exit 1
           fi
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
@@ -99,16 +108,36 @@ jobs:
           got=$(docker run --rm --entrypoint telegram-bot-api \
             "${IMAGE}@${{ steps.digest.outputs.digest }}" --version 2>&1)
           echo "$got"
-          case "$got" in
-            *"${{ steps.pin.outputs.version }}"*) ;;
-            *) echo "image reports '$got', expected Bot API ${{ steps.pin.outputs.version }}"; exit 1 ;;
-          esac
+          # Anchored on a word boundary. A bare substring test passes "10.30"
+          # for "10.3", and passes any line that merely mentions the number --
+          # and this is now the only barrier between a digest in GHCR and a
+          # published release tag.
+          if ! printf '%s' "$got" | grep -Eq "(^|[^0-9.])${{ steps.pin.outputs.version }}([^0-9.]|$)"; then
+            echo "image reports '$got', expected Bot API ${{ steps.pin.outputs.version }}"
+            exit 1
+          fi
 
       - name: Add the release tag to that same digest
         run: |
           docker buildx imagetools create \
             --tag "${IMAGE}:${GITHUB_REF_NAME}" \
             "${IMAGE}@${{ steps.digest.outputs.digest }}"
+
+          # The build publishes provenance and an SBOM, so the tag points at an
+          # OCI index rather than a single manifest, and `create` builds and
+          # pushes a new index. The bytes that run are the same either way, but
+          # the index digest is not guaranteed to be, and the whole point of this
+          # version line is that a release names one digest that can be pinned.
+          # If it moved, say so here rather than let a rollback discover it.
+          got=$(docker buildx imagetools inspect "${IMAGE}:${GITHUB_REF_NAME}" \
+            --format '{{ json .Manifest.Digest }}' | tr -d '"')
+          if [ "${got}" != "${{ steps.digest.outputs.digest }}" ]; then
+            echo "re-tagging moved the digest:"
+            echo "  built:  ${{ steps.digest.outputs.digest }}"
+            echo "  tagged: ${got}"
+            echo "Pin the tagged digest, and do not trust the one in the release notes."
+            exit 1
+          fi
 
       - name: Create GitHub Release
         env:
