@@ -48,12 +48,15 @@ ARG EXPECTED_BOT_API
 
 # The version has to be readable without running anything: the server itself
 # is silent by default, so `docker inspect` is how an operator finds out what
-# is actually running.
+# is actually running. The upstream commit carries both the old and the new
+# brand key, so images built before and after the rename answer to the same
+# inspect command; drop the freshlab one once no old image is in use.
 LABEL org.opencontainers.image.title="telegram-bot-api" \
       org.opencontainers.image.description="Telegram Bot API server built from pinned tdlib sources" \
       org.opencontainers.image.source="https://github.com/FreshLabDev/telegram-bot-api" \
       org.opencontainers.image.licenses="BSL-1.0" \
       org.opencontainers.image.version="${EXPECTED_BOT_API}" \
+      org.asterfield.upstream.commit="${BOT_API_COMMIT}" \
       org.freshlab.upstream.commit="${BOT_API_COMMIT}"
 
 RUN apk add --no-cache openssl libstdc++ \

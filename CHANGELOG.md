@@ -15,7 +15,7 @@
 
 ## Bot API 10.3 - 2026-09-08
 
-First FreshLab build.
+First Asterfield build.
 
 - Built from `tdlib/telegram-bot-api@e3e9dd8` (2026-08-25), td submodule
   `bc9c263`, on Alpine 3.24. The version the sources declare is checked

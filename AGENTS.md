@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository builds the Bot API server that every FreshLab bot talks to.
+This repository builds the Bot API server that every Asterfield bot talks to.
 It holds their tokens and sees their messages. Treat changes accordingly.
 
 ## Rules
