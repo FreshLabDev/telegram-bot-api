@@ -27,6 +27,14 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 ### Added
 
+- `docs/releases.md` gained a **Deploying** section, and `AGENTS.md` points at it.
+  Releasing was documented; deploying was not, in any repository in the family —
+  the process stopped at "deploy it" and never said how. That gap mattered more
+  after the stacks moved from building on the host to pulling a published image,
+  because the procedure changed on the same day. The section names this stack's
+  host directory, its env file, the variable that selects the image, the networks
+  it needs, and what a rollback actually is.
+
 - A version line of this repository's own, `v<bot api>-<build>`, and the
   release workflow that publishes it. The image carried `:10.3` and
   `:commit-<sha>`, and neither is something to roll back to: the first moves on

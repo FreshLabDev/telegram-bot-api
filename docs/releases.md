@@ -92,6 +92,83 @@ the whole rollback — and then publish a new patch that fixes what went wrong.
 A version that was published is a fact about what existed. Rewriting it makes
 every other record of it wrong.
 
+## Deploying
+
+The host is WS04. Every stack lives in `/opt/stacks/<stack>` and is driven by the
+`ws04` CLI, which exists on the operator's machine and reaches the host over the
+LAN. Nothing here is built on the host any more: a stack pulls the image the
+release workflow published and runs that. If you find a `build:` section in a
+production manifest, that is a bug, not a shortcut.
+
+### One deploy
+
+```sh
+ws04 deploy telegram-bot-api-next --dry-run --yes    # prints what it would do, changes nothing
+ws04 deploy telegram-bot-api-next --yes
+```
+
+`deploy` snapshots the stack's compose, env and image ids into
+`/opt/stacks/.ws04/deploy-snapshots/telegram-bot-api-next/<timestamp>`, pulls, brings the stack
+up, waits up to ninety seconds for the container to report healthy, and **rolls
+back on its own** if it does not. The snapshot is kept either way.
+
+### Pointing the stack at a version
+
+The image is chosen by one variable in the stack's env file on the host, not by
+anything in this repository:
+
+```sh
+BOT_API_IMAGE=ghcr.io/freshlabdev/telegram-bot-api@sha256:<digest>
+```
+
+Pin the **digest**, not the tag. A tag can be moved; a digest names one build
+that was tested, so a rollback is one line with nothing to rebuild, and
+`docker inspect` on the running container answers which commit it came from. The
+digest of a release is in its GitHub Release notes, or:
+
+```sh
+gh api /orgs/FreshLabDev/packages/container/telegram-bot-api/versions \
+  --jq '.[] | select(.metadata.container.tags[]? == "<tag>") | .name'
+```
+
+The variable has no default. An unset one stops the stack with a message naming
+it, rather than quietly starting something else.
+
+### Rolling back
+
+Set `BOT_API_IMAGE` to the previous digest and deploy again. That is the whole
+rollback — the images are still on the host, and nothing is rebuilt. Then publish
+a patch that fixes what went wrong; never retag or delete the bad release.
+
+### What this stack needs to exist
+
+| | |
+|:--|:--|
+| Stack | `telegram-bot-api-next` — `/opt/stacks/telegram-bot-api-next` |
+| Manifest | [`deploy/compose.yaml`](deploy/compose.yaml) in this repository |
+| Env file | `.env` on the host, never in git |
+| Networks | `telegram_bot_api_net`, where it also answers to the alias `telegram-bot-api` |
+
+This container holds the token of every bot on the host and sees all of their
+messages. A bot token is logged in on exactly one server at a time, so moving a
+bot between servers is a one-way step: prove a build with `deploy/probe.sh` and
+the probe bot first, never by pointing a real bot at it.
+
+A release here re-tags a digest the build workflow already pushed and verified;
+it never rebuilds. So deploying is always pinning a digest that has been run.
+
+### Checking what is running
+
+```sh
+ws04 container list                    # health of everything
+ws04 logs telegram-bot-api-next --since 1h
+ws04 container inspect telegram-bot-api-next     # includes the image digest
+```
+
+The bot also reports its own version — from the About card in Telegram, and from
+its health endpoint where it has one. Those two and `docker inspect` should
+agree; if they do not, something was deployed by hand.
+
 ## Verification
 
 ```sh
