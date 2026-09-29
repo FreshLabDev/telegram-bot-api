@@ -13,6 +13,12 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 Use this section for changes that are merged but not released yet.
 
+### Changed
+
+- `dev` builds the image too, without publishing it, so a broken Dockerfile is
+  found before it reaches `main`. Only `main` moves the version tag.
+- Dependabot opens grouped version updates against `dev`.
+
 ## v10.3-1 - 2026-09-09
 
 First named build of the Bot API 10.3 server. The image existed; what it lacked
