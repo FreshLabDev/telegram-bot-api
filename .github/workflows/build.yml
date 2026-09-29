@@ -3,7 +3,9 @@ name: build
 
 on:
   push:
-    branches: [main]
+    # dev builds the image to prove the Dockerfile still works, but only main
+    # publishes: the version tag must not move to a build nobody released.
+    branches: [main, dev]
     paths: [Dockerfile, entrypoint.sh, .github/workflows/build.yml]
   pull_request:
     paths: [Dockerfile, entrypoint.sh, .github/workflows/build.yml]
@@ -30,8 +32,17 @@ jobs:
 
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
+      - name: Decide whether this run publishes
+        id: publish
+        run: |
+          if [ "${{ github.event_name }}" != pull_request ] && [ "${{ github.ref }}" = refs/heads/main ]; then
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: steps.publish.outputs.push == 'true'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
@@ -53,7 +64,10 @@ jobs:
         with:
           context: .
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ steps.publish.outputs.push == 'true' }}
+          # An unpublished build is loaded locally so the version check below
+          # still has something to run.
+          load: ${{ steps.publish.outputs.push != 'true' }}
           # The build fetches upstream sources, so a cached layer would hide a
           # changed pin. Layers are cached by the ARG values, which is exactly
           # the granularity we want.
@@ -63,11 +77,12 @@ jobs:
             ${{ env.IMAGE }}:${{ steps.pin.outputs.version }}
             ${{ env.IMAGE }}:commit-${{ steps.pin.outputs.commit }}
             ${{ env.IMAGE }}:sha-${{ github.sha }}
-          provenance: true
-          sbom: true
+          # Attestations need a registry to live in; a loaded image has none.
+          provenance: ${{ steps.publish.outputs.push == 'true' }}
+          sbom: ${{ steps.publish.outputs.push == 'true' }}
 
       - name: Report the digest to pin
-        if: github.event_name != 'pull_request'
+        if: steps.publish.outputs.push == 'true'
         run: |
           echo "Pin this in compose:" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -75,12 +90,15 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify the built server reports the pinned version
-        if: github.event_name != 'pull_request'
         run: |
+          if [ "${{ steps.publish.outputs.push }}" = true ]; then
+            ref="${{ env.IMAGE }}@${{ steps.push.outputs.digest }}"
+          else
+            ref="${{ env.IMAGE }}:sha-${{ github.sha }}"
+          fi
           # --version goes to stderr: the server logs it through its own
           # logger, which never writes to stdout.
-          got=$(docker run --rm --entrypoint telegram-bot-api \
-            ${{ env.IMAGE }}@${{ steps.push.outputs.digest }} --version 2>&1)
+          got=$(docker run --rm --entrypoint telegram-bot-api "$ref" --version 2>&1)
           echo "$got"
           case "$got" in
             *"${{ steps.pin.outputs.version }}"*) ;;
