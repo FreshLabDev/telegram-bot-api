@@ -3,7 +3,7 @@
 <p align="center"><strong>The Telegram Bot API server, built by us from pinned sources.</strong><br/>One container holds the tokens of every bot on the host and sees all of their messages. This is where what goes into it is decided.</p>
 
 <p align="center">
-  <a href="https://core.telegram.org/bots/api"><img src="https://img.shields.io/badge/bot%20api-10.3-26A5E4?style=for-the-badge&labelColor=0f172a" alt="Bot API 10.3"></a>
+  <a href="https://core.telegram.org/bots/api"><img src="https://img.shields.io/badge/bot%20api-10.4-26A5E4?style=for-the-badge&labelColor=0f172a" alt="Bot API 10.4"></a>
   <a href="Dockerfile"><img src="https://img.shields.io/badge/base-alpine%203.24-0D597F?style=for-the-badge&logo=alpinelinux&logoColor=white&labelColor=0f172a" alt="alpine"></a>
   <a href="NOTICE"><img src="https://img.shields.io/badge/upstream-BSL--1.0-334155?style=for-the-badge&labelColor=0f172a" alt="upstream license"></a>
 </p>
@@ -50,7 +50,7 @@ moving a bot means `logOut` on the server it leaves, which is a one-way step.
 Telegram's version is the server's; `v<bot api>-<build>` is this repository's,
 because what is packaged around that server -- base image, entrypoint, labels,
 the pinned upstream commit within one Bot API version -- changes on its own
-schedule. `:10.3` moves on every rebuild and `:commit-<sha>` names the upstream
+schedule. `:10.4` moves on every rebuild and `:commit-<sha>` names the upstream
 commit, so neither is a thing to roll back to. A release names one digest that
 was built and verified, and does not rebuild it. See
 [`docs/versioning.md`](docs/versioning.md).
@@ -72,9 +72,9 @@ actually matters: whether it implements the methods that bot needs. See
 ## What is pinned
 
 ```
-tdlib/telegram-bot-api  e3e9dd8e5b3d7ab8537cd5a10dc31d5ffa8f82d1   2026-08-25
-  └─ td (submodule)     bc9c263e2bfee06aaab41e82db51a103376030bc
-Bot API                 10.3
+tdlib/telegram-bot-api  7232881b39dfcd048a0d569f1983c5184249ee05   2026-11-09
+  └─ td (submodule)     c8828d50f5eac2fc7089ce1089d7ce9095c61b5e
+Bot API                 10.4
 ```
 
 Both live in `Dockerfile` as build arguments. Changing `BOT_API_COMMIT`
