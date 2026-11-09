@@ -21,7 +21,7 @@ BASE="${1:-http://telegram-bot-api-next:8081}"
 shift || true
 METHODS=("$@")
 if [ ${#METHODS[@]} -eq 0 ]; then
-  METHODS=(sendMessage sendPhoto sendRichMessage editMessageText editEphemeralMessageText deleteEphemeralMessage answerCallbackQuery answerInlineQuery getFile)
+  METHODS=(sendMessage sendPhoto sendRichMessage editMessageText editEphemeralMessageText deleteEphemeralMessage answerCallbackQuery answerInlineQuery getFile sendWidget answerWidgetQuery)
 fi
 
 TOKEN="$(grep -E '^PROBE_BOT_TOKEN=' "$STACK/.env" | cut -d= -f2-)"

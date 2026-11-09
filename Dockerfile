@@ -10,10 +10,10 @@
 # ends up empty.
 ARG ALPINE_VERSION=3.24
 # Upstream commit. Bump deliberately, together with EXPECTED_BOT_API.
-ARG BOT_API_COMMIT=e3e9dd8e5b3d7ab8537cd5a10dc31d5ffa8f82d1
+ARG BOT_API_COMMIT=7232881b39dfcd048a0d569f1983c5184249ee05
 # Bot API version that commit declares. The build fails if the two disagree,
 # so an unnoticed bump cannot ship under the old version number.
-ARG EXPECTED_BOT_API=10.3
+ARG EXPECTED_BOT_API=10.4
 # TDLib compilation is memory-hungry: roughly 1.5-2 GB per job. Four fits a
 # 16 GB runner; lower it on a smaller machine.
 ARG BUILD_JOBS=4

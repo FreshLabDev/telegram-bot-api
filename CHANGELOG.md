@@ -13,6 +13,32 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 Use this section for changes that are merged but not released yet.
 
+## v10.4-1 - 2026-11-09
+
+Bot API 10.4: widgets in messages and ephemeral replies to a button press.
+A bot built on `tg` with 10.4 needs this server for both; nothing a 10.3 bot
+does changes.
+
+### Changed
+
+- Built from `tdlib/telegram-bot-api@7232881` (2026-11-09), td submodule
+  `c8828d5` (TDLib 1.8.70), up from `e3e9dd8` and 10.3. Upstream changed no
+  command-line option or environment variable, so `entrypoint.sh` and the
+  deployment stay as they are.
+- New in the server: `sendWidget`, `sendSharedWidget`,
+  `editMessageWidgetData`, `editSharedWidgetData`, `answerWidgetQuery`, the
+  `widget_query` and `shared_widget_query` updates, ephemeral replies to a
+  callback query without `receiver_user_id`, `quote_rich_texts`, TON wallet
+  cards and transfers, chat share themes, `getUniqueGift`,
+  `deleteBusinessAccountGift`. Upstream also fixed updates about new
+  ephemeral messages and stopped checking supergroup rights for them.
+- `deploy/probe.sh` asks for `sendWidget` and `answerWidgetQuery` by default,
+  so a probe tells a 10.4 server from a 10.3 one. Both fail on an empty body
+  before they act.
+- `dev` builds the image too, without publishing it, so a broken Dockerfile is
+  found before it reaches `main`. Only `main` moves the version tag.
+- Dependabot opens grouped version updates against `dev`.
+
 ## v10.3-1 - 2026-09-09
 
 First named build of the Bot API 10.3 server. The image existed; what it lacked
