@@ -13,6 +13,8 @@ See [`docs/versioning.md`](docs/versioning.md) for what the numbers mean and
 
 Use this section for changes that are merged but not released yet.
 
+## v10.4-1 - 2026-11-09
+
 Bot API 10.4: widgets in messages and ephemeral replies to a button press.
 A bot built on `tg` with 10.4 needs this server for both; nothing a 10.3 bot
 does changes.
@@ -33,7 +35,6 @@ does changes.
 - `deploy/probe.sh` asks for `sendWidget` and `answerWidgetQuery` by default,
   so a probe tells a 10.4 server from a 10.3 one. Both fail on an empty body
   before they act.
-
 - `dev` builds the image too, without publishing it, so a broken Dockerfile is
   found before it reaches `main`. Only `main` moves the version tag.
 - Dependabot opens grouped version updates against `dev`.
